@@ -47,6 +47,8 @@ app.post("/check", (req, res) => {
   res.json({ corrected: text });
 });
 
-app.listen(3000, () => {
-  console.log("무료 교정 서버 실행됨 🚀");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("무료 교정 서버 실행됨 🚀", PORT);
 });
