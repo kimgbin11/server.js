@@ -3,11 +3,30 @@ const cors = require("cors");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "*", // 모든 도메인 허용 (필요에 따라 제한 가능)
+}));
 app.use(express.json());
 
 app.post("/check", (req, res) => {
   let text = req.body.text;
+
+  // 🔥 타입 검사
+  if (typeof text !== "string") {
+    return res.status(400).json({ error: "invalid input" });
+  }
+
+  // 🔥 길이 제한 (과부하 방지)
+  if (text.length > 500) {
+    return res.status(400).json({ error: "too long" });
+  }
+
+  // 🔥 이상 문자 차단 (기본)
+  if (/[<>]/.test(text)) {
+    return res.status(400).json({ error: "invalid characters" });
+  }
+
+  // 기존 로직 그대로 ↓
 
   // 🔥 안전한 규칙 (문장 안 자름)
   text = text
@@ -52,3 +71,15 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("무료 교정 서버 실행됨 🚀", PORT);
 });
+
+const rateLimit = require("express-rate-limit");
+
+// 🔥 요청 제한 (DDoS 방지)
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1분
+  max: 60, // 최대 60번 요청
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+app.use(limiter);
